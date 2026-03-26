@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",
+    "chokidar": "^5.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "glob": "^13.0.6",

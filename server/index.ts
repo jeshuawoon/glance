@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
+import chokidar from 'chokidar';
 
 const app = express();
 const PORT = 3001;
@@ -13,6 +14,46 @@ app.use(express.json());
 let targetDir = process.argv[2]
   ? path.resolve(process.argv[2])
   : path.resolve(process.cwd());
+
+// Array of connected SSE UI clients
+const clients = new Set<express.Response>();
+
+app.get('/api/watch', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+  
+  clients.add(res);
+  req.on('close', () => clients.delete(res));
+});
+
+let reloadTimeout: NodeJS.Timeout;
+function broadcastReload() {
+  clearTimeout(reloadTimeout);
+  reloadTimeout = setTimeout(() => {
+    for (const client of clients) {
+      client.write(`data: ${JSON.stringify({ type: 'reload' })}\n\n`);
+    }
+  }, 50); // Debounce extremely fast I/O burst signals 
+}
+
+let watcher: any = null;
+function setupWatcher(dir: string) {
+  if (watcher) watcher.close();
+  watcher = chokidar.watch(dir, {
+    ignored: [/node_modules/, /(^|[\/\\])\../, /\.git/], // Ignore dense standard non-source binaries
+    persistent: true,
+    ignoreInitial: true,
+  });
+
+  watcher.on('all', () => {
+    broadcastReload();
+  });
+}
+
+// Boot the FS watcher immediately
+setupWatcher(targetDir);
 
 const SUPPORTED_EXTENSIONS = ['.tsx', '.jsx', '.md', '.mdx', '.html', '.svg'];
 
@@ -133,6 +174,7 @@ app.post('/api/set-directory', (req, res) => {
     }
 
     targetDir = resolved;
+    setupWatcher(targetDir); // Update watcher to point to new OS project directory
     const tree = buildFileTree(targetDir);
     res.json({ root: targetDir, tree });
   } catch (err) {

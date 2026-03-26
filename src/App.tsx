@@ -38,26 +38,44 @@ export default function App() {
     }, 3000);
   }, []);
 
-  const fetchFileTree = useCallback(async () => {
-    setIsLoadingTree(true); // Use combined loading state
+  const fetchFileTree = useCallback(async (silent: boolean = false) => {
+    if (!silent) setIsLoadingTree(true);
     setError(null);
     try {
       const res = await fetch('/api/files');
       if (!res.ok) throw new Error('Failed to fetch files');
       const data = await res.json();
       setFiles(data.tree);
-      setRootPath(data.root);
+      if (!silent) setRootPath(data.root);
     } catch (err) {
-      setError('Failed to connect to Glance server. Is it running?');
+      if (!silent) {
+        setError('Failed to connect to Glance server. Is it running?');
+        showToast('Failed to connect to Glance server. Is it running?', 'error');
+      }
       console.error(err);
-      showToast('Failed to connect to Glance server. Is it running?', 'error');
     } finally {
-      setIsLoadingTree(false); // Use combined loading state
+      if (!silent) setIsLoadingTree(false);
     }
   }, [showToast]);
 
   useEffect(() => {
     fetchFileTree();
+  }, [fetchFileTree]);
+
+  // Hot Reload Hook
+  useEffect(() => {
+    const sse = new EventSource('http://localhost:3001/api/watch');
+    sse.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === 'reload') {
+          fetchFileTree(true); // Soft-reload the file tree without UI spinners
+        }
+      } catch (err) {
+        // Ignore
+      }
+    };
+    return () => sse.close();
   }, [fetchFileTree]);
 
   // Global catch-all for unhandled errors
