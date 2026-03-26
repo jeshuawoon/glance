@@ -64,7 +64,7 @@ export default function App() {
 
   // Hot Reload Hook
   useEffect(() => {
-    const sse = new EventSource('http://localhost:3001/api/watch');
+    const sse = new EventSource('/api/watch');
     sse.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
