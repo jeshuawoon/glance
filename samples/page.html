@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sample HTML Page</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+    }
+    h1 { font-size: 2rem; margin-bottom: 12px; }
+    p { color: rgba(255,255,255,0.7); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌐 HTML Preview</h1>
+    <p>This is a sample HTML file being previewed with Glance. It renders in a sandboxed iframe.</p>
+  </div>
+</body>
+</html>
