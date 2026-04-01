@@ -28,6 +28,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState<{ id: number; message: string; type: 'error' | 'success' } | null>(null);
 
   const showToast = useCallback((message: string, type: 'error' | 'success' = 'error') => {
@@ -145,8 +146,19 @@ export default function App() {
       </header>
 
       <div className="app-body">
-        <aside className="sidebar">
-          <div className="sidebar-header">Explorer</div>
+        <aside className={`sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
+          <div className="sidebar-header">
+            <span>Explorer</span>
+            <button
+              className="sidebar-collapse-btn"
+              onClick={() => setSidebarCollapsed(true)}
+              title="Collapse sidebar"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          </div>
           <div className="sidebar-content">
             {isLoadingTree ? ( // Use combined loading state
               <div className="loading" style={{ padding: '32px' }}>
@@ -166,49 +178,60 @@ export default function App() {
         <main className="main-content">
           {error && <div className="error-banner">{error}</div>}
 
-          {selectedPath && fileData && (
-            <div className="preview-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="preview-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div className="preview-header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span
-                  className={`file-badge ${fileData.extension.replace('.', '')}`}
-                >
+                {sidebarCollapsed && (
+                  <button
+                    className="sidebar-expand-btn"
+                    onClick={() => setSidebarCollapsed(false)}
+                    title="Expand sidebar"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                )}
+                {selectedPath && fileData && (<>
+                <span className={`file-badge ${fileData.extension.replace('.', '')}`}>
                   {fileData.extension.toUpperCase()}
                 </span>
                 <span className="preview-header-filename">
                   {getFilename(selectedPath)}
                 </span>
+                </>)}
               </div>
               
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  className="header-toggle-btn"
-                  onClick={() => setReloadKey(k => k + 1)}
-                  title="Reload compilation environment"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <polyline points="1 20 1 14 7 14"></polyline>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                  </svg>
-                  Reload
-                </button>
-
-                {(fileData.extension === '.tsx' || fileData.extension === '.jsx') && (
+              {selectedPath && fileData && (
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     className="header-toggle-btn"
-                    onClick={() => setShowCode(!showCode)}
-                    title={showCode ? 'Hide code view' : 'Show code view'}
+                    onClick={() => setReloadKey(k => k + 1)}
+                    title="Reload compilation environment"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-                      <polyline points="16 18 22 12 16 6"></polyline>
-                      <polyline points="8 6 2 12 8 18"></polyline>
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <polyline points="1 20 1 14 7 14"></polyline>
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                     </svg>
-                    {showCode ? 'Hide Code' : 'Show Code'}
+                    Reload
                   </button>
-                )}
-              </div>
+
+                  {(fileData.extension === '.tsx' || fileData.extension === '.jsx') && (
+                    <button
+                      className="header-toggle-btn"
+                      onClick={() => setShowCode(!showCode)}
+                      title={showCode ? 'Hide code view' : 'Show code view'}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                      </svg>
+                      {showCode ? 'Hide Code' : 'Show Code'}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          )}
 
           <div className="preview-container">
             {isLoadingFile && selectedPath ? (

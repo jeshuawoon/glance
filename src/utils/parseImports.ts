@@ -3,7 +3,7 @@
  * Filters out relative imports and returns unique package names.
  */
 export function parseImports(code: string): string[] {
-  const importRegex = /import\s+(?:.*?\s+from\s+)?['"]([^'"]+)['"]/g;
+  const importRegex = /import\s+(?:[\s\S]*?\s+from\s+)?['"]([^'"]+)['"]/g;
   const requireRegex = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 
   const packages = new Set<string>();
